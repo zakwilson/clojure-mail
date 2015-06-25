@@ -20,12 +20,6 @@
   {:protocol "imaps"
    :server "imap.gmail.com"})
 
-(def gmail-folder-names
-  {:inbox "INBOX"
-   :all   "[Gmail]/All Mail"
-   :sent  "[Gmail]/Sent Mail"
-   :spam  "[Gmail]/Spam"})
-
 (defonce ^:dynamic *store* nil)
 
 (defmacro with-store
@@ -79,8 +73,9 @@
 
 (defn gen-store
   "Generates an email store which allows us access to our inbox"
-  [email password]
-    (store (:protocol gmail) (:server gmail) email password))
+  ([email password]
+   (store (:protocol gmail) (:server gmail) email password))
+  ([]))
 
 (defn connected?
   "Returns true if a connection is established"
@@ -130,13 +125,12 @@
 (defn open-folder
   "Open a folder. Requires that a folder-name be a valid gmail folder
    i.e :inbox :sent :spam etc"
-  ([folder-name perm-level] (open-folder *store* folder-name perm-level))
-  ([store folder-name perm-level]
-     (when-let [folder (get gmail-folder-names folder-name)]
-       (let [root-folder (.getDefaultFolder store)
-             found-folder (get-folder root-folder folder)]
-         (doto found-folder
-           (.open (get folder-permissions perm-level)))))))
+  ([folder perm-level] (open-folder *store* folder perm-level))
+  ([store folder perm-level]
+   (let [root-folder (.getDefaultFolder store)
+         found-folder (get-folder root-folder folder)]
+     (doto found-folder
+       (.open (get folder-permissions perm-level))))))
 
 (defn message-count
   "Returns the number of messages in a folder"
